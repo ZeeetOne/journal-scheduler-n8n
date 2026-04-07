@@ -1,5 +1,5 @@
 {
-  "name": "Morning AI Journals Scheduler (Interactive Telegram)",
+  "name": "Morning AI Journals Scheduler (Interactive Telegram to Google Sheets)",
   "nodes": [
     {
       "parameters": {
@@ -139,11 +139,32 @@
       ]
     },
     {
-      "parameters": {},
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "name"
+        },
+        "operation": "append",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Link": "={{ $json.link }}",
+            "Status": "={{ $json.status }}",
+            "Tanggal": "={{ $json.date }}"
+          }
+        },
+        "options": {}
+      },
       "id": "8",
-      "name": "Simpan ke Database (Ganti Node Ini)",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
       "position": [
         500,
         550
@@ -153,7 +174,7 @@
       "parameters": {
         "operation": "answerCallbackQuery",
         "callbackQueryId": "={{ $('Telegram Callback Trigger').item.json.callback_query.id }}",
-        "text": "Jurnal berhasil ditandai sudah dibaca!",
+        "text": "Jurnal berhasil ditandai sudah dibaca di Google Sheets!",
         "showAlert": false
       },
       "id": "9",
@@ -226,14 +247,14 @@
       "main": [
         [
           {
-            "node": "Simpan ke Database (Ganti Node Ini)",
+            "node": "Google Sheets",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Simpan ke Database (Ganti Node Ini)": {
+    "Google Sheets": {
       "main": [
         [
           {
