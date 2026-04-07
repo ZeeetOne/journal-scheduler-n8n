@@ -1,5 +1,5 @@
 {
-  "name": "Morning AI Journals Scheduler to Telegram",
+  "name": "Morning AI Journals Scheduler (Interactive Telegram)",
   "nodes": [
     {
       "parameters": {
@@ -17,7 +17,7 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        250,
+        100,
         300
       ]
     },
@@ -52,7 +52,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        450,
+        300,
         300
       ]
     },
@@ -64,7 +64,7 @@
         "messages": {
           "messageValues": [
             {
-              "content": "={{ 'Berikut adalah data XML mentah dari ArXiv: ' + $json.data + '\\n\\nTugas: Ekstrak 3 jurnal ilmiah terbaru. Berikan judul, penulis, link langsung ke jurnal atau PDF (misal http://arxiv.org/abs/...), dan 1-2 kalimat perkenalan singkat dalam bahasa Indonesia. Jangan buat rangkuman panjang, utamakan direct link untuk dibaca langsung. Outputkan saja teksnya, tanpa basa-basi.' }}"
+              "content": "={{ 'Berikut adalah data XML mentah dari ArXiv: ' + $json.data + '\\n\\nTugas: Ekstrak 3 jurnal ilmiah terbaru. Output WAJIB berupa JSON array murni tanpa markdown (tanpa ```json). Setiap objek memiliki key: \"title\" (judul), \"authors\" (penulis), \"link\" (link langsung ke arxiv.org/abs/...), dan \"summary\" (1-2 kalimat perkenalan singkat dalam bahasa Indonesia).' }}"
             }
           ]
         }
@@ -74,25 +74,95 @@
       "type": "n8n-nodes-base.openAi",
       "typeVersion": 1,
       "position": [
-        650,
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const responseText = $input.first().json.message.content;\nlet journals = [];\n\ntry {\n  journals = JSON.parse(responseText);\n} catch (e) {\n  // Fallback if AI wraps in markdown\n  const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '');\n  journals = JSON.parse(cleaned);\n}\n\nlet messageText = \"*📚 3 Jurnal AI/ML Terbaru Hari Ini*\\n\\n\";\nlet inlineKeyboard = [[]];\n\njournals.forEach((journal, index) => {\n  const num = index + 1;\n  messageText += `*${num}. ${journal.title}*\\n`;\n  messageText += `👨‍🔬 Penulis: ${journal.authors}\\n`;\n  messageText += `📖 Rangkuman: ${journal.summary}\\n`;\n  messageText += `🔗 Link: [Baca di sini](${journal.link})\\n\\n`;\n  \n  // Add button to the first row\n  inlineKeyboard[0].push({\n    text: `✅ Jurnal ${num}`,\n    callback_data: `save|${journal.link}`\n  });\n});\n\nreturn {\n  message: messageText,\n  replyMarkup: {\n    inline_keyboard: inlineKeyboard\n  }\n};"
+      },
+      "id": "4",
+      "name": "Format Telegram Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
         300
       ]
     },
     {
       "parameters": {
         "chatId": "613981246",
-        "text": "={{ $json.message.content }}",
+        "text": "={{ $json.message }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": "={{ $json.replyMarkup }}",
         "additionalFields": {
           "parse_mode": "Markdown"
         }
       },
-      "id": "4",
+      "id": "5",
       "name": "Send to Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.1,
       "position": [
-        850,
-        200
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "updates": [
+          "callback_query"
+        ]
+      },
+      "id": "6",
+      "name": "Telegram Callback Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const callbackData = $input.first().json.callback_query.data;\nconst link = callbackData.split('|')[1];\n\nreturn {\n  link: link,\n  status: \"Sudah Dibaca\",\n  date: new Date().toISOString()\n};"
+      },
+      "id": "7",
+      "name": "Extract Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        550
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "8",
+      "name": "Simpan ke Database (Ganti Node Ini)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        500,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "answerCallbackQuery",
+        "callbackQueryId": "={{ $('Telegram Callback Trigger').item.json.callback_query.id }}",
+        "text": "Jurnal berhasil ditandai sudah dibaca!",
+        "showAlert": false
+      },
+      "id": "9",
+      "name": "Answer Callback Query",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        700,
+        550
       ]
     }
   ],
@@ -123,7 +193,51 @@
       "main": [
         [
           {
+            "node": "Format Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Telegram Message": {
+      "main": [
+        [
+          {
             "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Callback Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Data": {
+      "main": [
+        [
+          {
+            "node": "Simpan ke Database (Ganti Node Ini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simpan ke Database (Ganti Node Ini)": {
+      "main": [
+        [
+          {
+            "node": "Answer Callback Query",
             "type": "main",
             "index": 0
           }
