@@ -1,5 +1,5 @@
 {
-  "name": "Morning AI Journals Scheduler to Telegram & GitHub",
+  "name": "Morning AI Journals Scheduler to Telegram",
   "nodes": [
     {
       "parameters": {
@@ -94,26 +94,6 @@
         850,
         200
       ]
-    },
-    {
-      "parameters": {
-        "authentication": "oAuth2",
-        "resource": "file",
-        "operation": "create",
-        "owner": "ZeeetOne",
-        "repository": "ai-journals-archive",
-        "filePath": "={{ $now.format('yyyy-MM-dd') }}-journals.md",
-        "fileContent": "={{ $json.message.content }}",
-        "commitMessage": "Add daily AI journals"
-      },
-      "id": "5",
-      "name": "Push to GitHub",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1,
-      "position": [
-        850,
-        400
-      ]
     }
   ],
   "connections": {
@@ -144,11 +124,6 @@
         [
           {
             "node": "Send to Telegram",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Push to GitHub",
             "type": "main",
             "index": 0
           }
