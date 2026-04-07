@@ -127,7 +127,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const callbackData = $input.first().json.callback_query.data;\nconst link = callbackData.split('|')[1];\n\nreturn {\n  link: link,\n  status: \"Sudah Dibaca\",\n  date: new Date().toISOString()\n};"
+        "jsCode": "const callbackData = $input.first().json.callback_query.data;\nconst link = callbackData.split('|')[1];\n\nreturn {\n  link: link,\n  is_read: 1,\n  created_at: new Date().toISOString()\n};"
       },
       "id": "7",
       "name": "Extract Data",
@@ -154,9 +154,15 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Link": "={{ $json.link }}",
-            "Status": "={{ $json.status }}",
-            "Tanggal": "={{ $json.date }}"
+            "id": "",
+            "title": "",
+            "author": "",
+            "link": "={{ $json.link }}",
+            "content": "",
+            "is_read": "={{ $json.is_read }}",
+            "created_at": "={{ $json.created_at }}",
+            "read_count": "",
+            "source": ""
           }
         },
         "options": {}
