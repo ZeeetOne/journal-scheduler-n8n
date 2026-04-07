@@ -223,7 +223,7 @@
         "messages": {
           "messageValues": [
             {
-              "content": "={{ 'Berdasarkan data XML jurnal ini:\\n\\n' + $json.data + '\\n\\nBuatkan 1 pertanyaan quiz pilihan ganda (A, B, C, D) untuk menguji pemahaman pengguna berdasarkan abstrak jurnal tersebut. Gunakan bahasa Indonesia.\\n\\nFormat WAJIB seperti ini:\\n\\n*Quiz Singkat Jurnal! 🧠*\\n\\n[Pertanyaan]\\n\\nA. [Pilihan]\\nB. [Pilihan]\\nC. [Pilihan]\\nD. [Pilihan]\\n\\n_(Balas pesan ini dengan jawabanmu untuk mengecek benar/salah!)_' }}"
+              "content": "={{ 'Berdasarkan data XML jurnal ini:\\n\\n' + $json.data + '\\n\\nBuatkan 5 pertanyaan quiz pilihan ganda (A, B, C, D) untuk menguji pemahaman pengguna berdasarkan abstrak jurnal tersebut. Gunakan bahasa Indonesia.\\n\\nFormat WAJIB seperti ini:\\n\\n*Quiz Singkat Jurnal! 🧠*\\n\\n1. [Pertanyaan 1]\\nA. [Pilihan]\\nB. [Pilihan]\\nC. [Pilihan]\\nD. [Pilihan]\\n\\n...dan seterusnya sampai 5 pertanyaan.\\n\\n_(Balas pesan ini dengan jawabanmu untuk mengecek benar/salah!)_' }}"
             }
           ]
         }
