@@ -1,5 +1,5 @@
 {
-  "name": "Morning AI Journals Scheduler (Interactive Telegram to Google Sheets)",
+  "name": "Morning AI Journals Scheduler (Interactive Telegram to Google Sheets & Quiz)",
   "nodes": [
     {
       "parameters": {
@@ -180,7 +180,7 @@
       "parameters": {
         "operation": "answerCallbackQuery",
         "callbackQueryId": "={{ $('Telegram Callback Trigger').item.json.callback_query.id }}",
-        "text": "Jurnal berhasil ditandai sudah dibaca di Google Sheets!",
+        "text": "Jurnal berhasil ditandai sudah dibaca di Google Sheets! Menyiapkan Quiz...",
         "showAlert": false
       },
       "id": "9",
@@ -189,6 +189,68 @@
       "typeVersion": 1.1,
       "position": [
         700,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://export.arxiv.org/api/query",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "id_list",
+              "value": "={{ $('Extract Data').item.json.link.split('/').pop() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10",
+      "name": "Fetch ArXiv Abstract",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4o-mini",
+        "messages": {
+          "messageValues": [
+            {
+              "content": "={{ 'Berdasarkan data XML jurnal ini:\\n\\n' + $json.data + '\\n\\nBuatkan 1 pertanyaan quiz pilihan ganda (A, B, C, D) untuk menguji pemahaman pengguna berdasarkan abstrak jurnal tersebut. Gunakan bahasa Indonesia.\\n\\nFormat WAJIB seperti ini:\\n\\n*Quiz Singkat Jurnal! 🧠*\\n\\n[Pertanyaan]\\n\\nA. [Pilihan]\\nB. [Pilihan]\\nC. [Pilihan]\\nD. [Pilihan]\\n\\n_(Balas pesan ini dengan jawabanmu untuk mengecek benar/salah!)_' }}"
+            }
+          ]
+        }
+      },
+      "id": "11",
+      "name": "Generate Quiz",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "613981246",
+        "text": "={{ $json.message.content }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "12",
+      "name": "Send Quiz to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        1300,
         550
       ]
     }
@@ -265,6 +327,39 @@
         [
           {
             "node": "Answer Callback Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Callback Query": {
+      "main": [
+        [
+          {
+            "node": "Fetch ArXiv Abstract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch ArXiv Abstract": {
+      "main": [
+        [
+          {
+            "node": "Generate Quiz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Quiz": {
+      "main": [
+        [
+          {
+            "node": "Send Quiz to Telegram",
             "type": "main",
             "index": 0
           }
