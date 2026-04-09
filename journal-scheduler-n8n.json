@@ -223,7 +223,7 @@
         "messages": {
           "messageValues": [
             {
-              "content": "={{ 'Berdasarkan data XML jurnal ini:\\n\\n' + $json.data + '\\n\\nBuatkan 5 pertanyaan quiz pilihan ganda (A, B, C, D) untuk menguji pemahaman pengguna berdasarkan abstrak jurnal tersebut. Gunakan bahasa Indonesia.\\n\\nFormat WAJIB seperti ini:\\n\\n*Quiz Singkat Jurnal! \ud83e\udde0*\\n\\n1. [Pertanyaan 1]\\nA. [Pilihan]\\nB. [Pilihan]\\nC. [Pilihan]\\nD. [Pilihan]\\n\\n...dan seterusnya sampai 5 pertanyaan.\\n\\n_(Balas pesan ini dengan jawabanmu untuk mengecek benar/salah!)_' }}"
+              "content": "={{ 'Berdasarkan data XML jurnal ini:\\n\\n' + $json.data + '\\n\\nBuatkan 5 pertanyaan quiz pilihan ganda (A, B, C, D) untuk menguji pemahaman pengguna. Gunakan bahasa Indonesia.\\n\\nFormat WAJIB seperti ini:\\n\\n*Quiz Singkat Jurnal! \ud83e\udde0*\\n\\n1. [Pertanyaan 1]\\nA. [Pilihan]\\nB. [Pilihan]\\nC. [Pilihan]\\nD. [Pilihan]\\n\\n...sampai 5 pertanyaan.\\n\\n_(Balas pesan ini dengan jawabanmu untuk mengecek benar/salah!)_\\n\\n||KUNCI_JAWABAN: [Contoh: 1A, 2B, 3C, 4D, 5A]||' }}"
             }
           ]
         }
@@ -314,21 +314,12 @@
     },
     {
       "parameters": {
-        "resource": "chat",
-        "operation": "create",
-        "model": "gpt-4o-mini",
-        "messages": {
-          "messageValues": [
-            {
-              "content": "={{ 'Ini adalah soal quiz:\\n\\n' + $json.message.reply_to_message.text + '\\n\\nIni adalah jawaban dari user:\\n\\n' + $json.message.text + '\\n\\nTugas: Tolong koreksi jawaban user. Beritahu mana yang benar dan mana yang salah. Untuk yang salah, berikan penjelasan singkat (1-2 kalimat) tentang jawaban yang benar berdasarkan konteks soal. Gunakan gaya bahasa yang ramah.' }}"
-            }
-          ]
-        }
+        "jsCode": "const replyText = $input.first().json.message.reply_to_message.text;\nconst userText = $input.first().json.message.text;\n\n// Extract KUNCI_JAWABAN from replyText (Telegram strips the || markdown in raw text)\nconst match = replyText.match(/KUNCI_JAWABAN:\\s*(.+?)(?:\\|\\||$)/i);\nlet replyMsg = \"Terima kasih sudah mencoba menjawab! \ud83e\udd73\\n\\n\";\n\nif (match) {\n  replyMsg += \"*Berikut adalah Kunci Jawaban yang benar:*\\n\u2705 \" + match[1].trim() + \"\\n\\nSilakan cocokkan dengan jawabanmu di atas ya!\";\n} else {\n  replyMsg += \"Maaf, kunci jawaban tidak ditemukan di pesan aslinya.\";\n}\n\nreturn { text: replyMsg };"
       },
       "id": "15",
-      "name": "Grade Quiz (OpenAI)",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1,
+      "name": "Extract Grade (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         500,
         780
@@ -337,7 +328,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Telegram Message Trigger').item.json.message.chat.id }}",
-        "text": "={{ $json.message.content }}",
+        "text": "={{ $json.text }}",
         "replyToMessageId": "={{ $('Telegram Message Trigger').item.json.message.message_id }}",
         "additionalFields": {
           "parse_mode": "Markdown"
@@ -479,14 +470,14 @@
       "main": [
         [
           {
-            "node": "Grade Quiz (OpenAI)",
+            "node": "Extract Grade (Code)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Grade Quiz (OpenAI)": {
+    "Extract Grade (Code)": {
       "main": [
         [
           {
